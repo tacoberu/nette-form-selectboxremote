@@ -7,11 +7,12 @@
 		"nette",
 		"form",
 		"select",
+		"remote",
 		"ajax"
 	],
 	"require": {
 		"php" : ">=8.1",
-		"nette/forms": "^3.2"
+		"nette/forms": "~3.1"
 	},
 	"require-dev": {
 		"phpstan/phpstan": "^1.10",

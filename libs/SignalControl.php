@@ -1,4 +1,5 @@
-<?php
+<?php declare(strict_types = 1);
+
 /**
  * This file is part of the Nella Project (http://nella-project.org).
  *
@@ -10,12 +11,16 @@
 
 namespace Taco\Nette\Forms\Controls;
 
+use Nette\Application\UI\ComponentReflection;
 use Nette\Application\UI\Form;
 use Nette\Application\UI\Presenter;
-use Nette\Application\UI\PresenterComponentReflection;
 use Nette\ComponentModel\IContainer;
 use Nette\ComponentModel\IComponent;
 use Nette\Utils\Strings;
+use Nette\Application\UI\ISignalReceiver;
+use Nette\InvalidStateException;
+use Nette\Application\UI\BadSignalException;
+use Nette\InvalidArgumentException;
 
 
 /**
@@ -24,41 +29,49 @@ use Nette\Utils\Strings;
 trait SignalControl
 {
 
-	/** @var array|mixed[] */
-	private $params = array();
+	/**
+	 * @var array<mixed>
+	 */
+	private $params = [];
 
-	protected function validateParent(IContainer $parent) : void
+	function signalReceived(string $signal): void
+	{
+		$methodName = sprintf('handle%s', Strings::firstUpper($signal));
+		if (!method_exists($this, $methodName)) {
+			throw new BadSignalException(sprintf('Method %s does not exist', $methodName));
+		}
+
+		$presenterComponentReflection = new ComponentReflection(static::class);
+		$methodReflection = $presenterComponentReflection->getMethod($methodName);
+		$args = ComponentReflection::combineArgs($methodReflection, $this->params);
+		$methodReflection->invokeArgs($this, $args);
+	}
+
+
+
+	protected function validateParent(IContainer $parent): void
 	{
 		parent::validateParent($parent);
 
-		$this->monitor('Nette\Application\UI\Presenter');
+		$this->monitor(Presenter::class, $this->attached(...), $this->detached(...));
 	}
 
-	/**
-	 * Returns a fully-qualified name that uniquely identifies the component
-	 * within the presenter hierarchy.
-	 *
-	 * @return string
-	 */
-	private function getUniqueId()
-	{
-		return $this->lookupPath('Nette\Application\UI\Presenter', TRUE);
-	}
+
 
 	/**
 	 * This method will be called when the component (or component's parent)
 	 * becomes attached to a monitored object. Do not call this method yourself.
 	 */
-	protected function attached(IComponent $component) : void
+	protected function attached(IComponent $component): void
 	{
-		if (!$this instanceof \Nette\Application\UI\ISignalReceiver) {
-			throw new \Nette\InvalidStateException(
-				sprintf('%s must implements Nette\Application\UI\ISignalReceiver', get_called_class())
+		if (!$this instanceof ISignalReceiver) {
+			throw new InvalidStateException(
+				sprintf('%s must implements Nette\Application\UI\ISignalReceiver', static::class)
 			);
 		}
 		if (!$component instanceof Form && !$component instanceof Presenter) {
-			throw new \Nette\InvalidStateException(
-				sprintf('%s must be attached to Nette\Application\UI\Form', get_called_class())
+			throw new InvalidStateException(
+				sprintf('%s must be attached to Nette\Application\UI\Form', static::class)
 			);
 		}
 
@@ -70,43 +83,32 @@ trait SignalControl
 	}
 
 
-	function signalReceived(string $signal) : void
+
+	protected function getPresenter(): Presenter
 	{
-		$methodName = sprintf('handle%s', \Nette\Utils\Strings::firstUpper($signal));
-		if (!method_exists($this, $methodName)) {
-			throw new \Nette\Application\UI\BadSignalException(sprintf('Method %s does not exist', $methodName));
+		$form = $this->getForm();
+		if (!$form instanceof Form) {
+			throw new InvalidStateException(sprintf('%s must be attached to Nette\Application\UI\Form', static::class));
 		}
-
-		$presenterComponentReflection = new PresenterComponentReflection(get_called_class());
-		$methodReflection = $presenterComponentReflection->getMethod($methodName);
-		$args = $presenterComponentReflection->combineArgs($methodReflection, $this->params);
-		$methodReflection->invokeArgs($this, $args);
+		return $form->getPresenter();
 	}
 
-	/**
-	 * @return \Nette\Application\UI\Presenter
-	 */
-	protected function getPresenter()
-	{
-		return $this->getForm()->getPresenter();
-	}
+
 
 	/**
 	 * Generates URL to presenter, action or signal.
 	 *
-	 * @param string destination in format "signal!"
-	 * @param array|mixed[]
-	 * @return string
+	 * @param string $destination Signal name in format "signal!"
+	 * @param array<string, mixed> $args
 	 */
-	protected function link($destination, $args = array())
+	protected function link(string $destination, array $args = []): string
 	{
 		$destination = trim($destination);
-		if (!Strings::endsWith($destination, '!') || Strings::contains($destination, ':')) {
-			throw new \Nette\InvalidArgumentException(sprintf('%s support only own signals.', get_called_class()));
+		if (!str_ends_with($destination, '!') || str_contains($destination, ':')) {
+			throw new InvalidArgumentException(sprintf('%s support only own signals.', static::class));
 		}
 
-		$args = is_array($args) ? $args : array_slice(func_get_args(), 1);
-		$fullPath = Strings::startsWith($destination, '//');
+		$fullPath = str_starts_with($destination, '//');
 		if ($fullPath) {
 			$destination = Strings::substring($destination, 2);
 		}
@@ -118,6 +120,19 @@ trait SignalControl
 		$args = $newArgs;
 
 		return $this->getPresenter()->link($destination, $args);
+	}
+
+
+
+	/**
+	 * Returns a fully-qualified name that uniquely identifies the component
+	 * within the presenter hierarchy.
+	 *
+	 * @return string
+	 */
+	private function getUniqueId()
+	{
+		return $this->lookupPath(Presenter::class, TRUE);
 	}
 
 }

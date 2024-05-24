@@ -1,7 +1,8 @@
-<?php
+<?php declare(strict_types = 1);
+
 /**
- * Copyright (c) since 2010 Martin Takáč (http://martin.takac.name)
- * @license   https://opensource.org/licenses/MIT MIT
+ * Copyright (c) since 2004 Martin Takáč (http://martin.takac.name)
+ * @license https://opensource.org/licenses/MIT MIT
  */
 
 namespace Taco\Nette\Forms\Controls;
@@ -32,38 +33,29 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 	 */
 	use SignalControl;
 
-
 	/**
 	 * Minimální počet znaků, než se začne dotazovat serveru.
-	 * @var numeric
 	 */
-	private $minInput = 1;
-
+	private int $minInput = 1;
 
 	/**
 	 * Size of page
-	 * @var numeric
 	 */
-	private $pageSize = 10;
-
+	private int $pageSize = 10;
 
 	/**
-	 * @var QueryModel
+	 * @var array<array{id: string, label: string}>
 	 */
-	private $model;
-
-
-	/** @var [{id:string, label:string}] */
-	private $selectedItems = [];
-
+	private array $selectedItems = [];
 
 	/**
 	 * @param string $label Popisek prvku.
+	 * @param int|null $pageSize
 	 */
-	function __construct(QueryModel $model, $label = NULL, $pageSize = NULL)
+	function __construct(private QueryModel $model, $label = NULL, $pageSize = NULL)
 	{
 		parent::__construct($label);
-		$this->model = $model;
+
 		if ($pageSize) {
 			$this->pageSize = (int) $pageSize;
 		}
@@ -73,8 +65,9 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 
 	/**
 	 * @param int $val Set optional PageSize
+	 * @return static
 	 */
-	function setPageSize($val)
+	function setPageSize($val): self
 	{
 		$this->pageSize = (int) $val;
 		return $this;
@@ -86,8 +79,9 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 	 * Dotaz zpátky sem na komponentu ohledně balíčku záznamů.
 	 * @param string $term Vyhledávaný text.
 	 * @param numeric $page O kolikátou stránku se jedná. Počítáno o 1.
+	 * @param numeric|null $pageSize
 	 */
-	function handleRange($term, $page, $pageSize = NULL)
+	function handleRange($term, $page, $pageSize = NULL): void
 	{
 		Validators::assert($term, 'string|null');
 		Validators::assert($page, 'numeric|null');
@@ -97,10 +91,10 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 		}
 		$page = (int) $page;
 		$pageSize = (int) $pageSize;
-		if ( ! $pageSize) {
+		if ( $pageSize === 0) {
 			$pageSize = $this->pageSize;
 		}
-		if ( ! $page) {
+		if ( $page === 0) {
 			$page = 1;
 		}
 
@@ -112,7 +106,7 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 		$payload->isMoreResults = ($page * $pageSize <= $payload->total);
 		$payload->term = $term;
 		$payload->page = (int) $page;
-		$payload->pageSize = (int) $pageSize;
+		$payload->pageSize = $pageSize;
 
 		// Výsledky vyhledávání.
 		$payload->items = array_values($payload->items);
@@ -122,12 +116,11 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 
 
 
-	function getControl() : Nette\Utils\Html
+	function getControl(): Nette\Utils\Html
 	{
-		/** @var Nette\Utils\Html $el */
 		$el = parent::getControl();
 		$el->data('type', 'remoteselect');
-		$el->data('data-url', $this->link('//range!', array()));
+		$el->data('data-url', $this->link('//range!', []));
 		$el->data('min-input', $this->minInput);
 
 		return $el;
@@ -137,9 +130,8 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 
 	/**
 	 * Loads HTTP data.
-	 * @return void
 	 */
-	function loadHttpData() : void
+	function loadHttpData(): void
 	{
 		$values = $this->getHttpData(Nette\Forms\Form::DATA_TEXT);
 
@@ -155,8 +147,8 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 
 
 	/**
-	 * Sets selected item (by key).
-	 * @param  string|int|null
+	 * Sets selected items (by keys).
+	 * @param array<int, string|int>|null $values
 	 * @return self
 	 * @internal
 	 */
@@ -171,7 +163,7 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 
 		$items = [];
 		foreach ($values as $id) {
-			$row = $this->fetchOne($id);
+			$row = $this->fetchOne((string) $id);
 			if (empty($row)) {
 				throw new Nette\InvalidArgumentException("Value '$id' is not found of resource.");
 			}
@@ -187,10 +179,11 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 
 	/**
 	 * Returns selected key.
+	 * @return array<int, string|int>
 	 */
-	function getValue() : array
+	function getValue(): array
 	{
-		if (empty($this->selectedItems)) {
+		if ($this->selectedItems === []) {
 			return [];
 		}
 
@@ -205,10 +198,11 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 
 	/**
 	 * Returns selected values.
+	 * @return array<int, string>
 	 */
-	function getSelectedItems() : array
+	function getSelectedItems(): array
 	{
-		if (empty($this->selectedItems)) {
+		if ($this->selectedItems === []) {
 			return [];
 		}
 		$xs = [];
@@ -221,10 +215,9 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 
 
 	/**
-	 * @param string $id
-	 * @return {id:string, label:string}
+	 * @return array{id: string, label: string}|null
 	 */
-	private function fetchOne($id)
+	private function fetchOne(string $id): ?array
 	{
 		Validators::assert($id, 'string');
 		if ($value = $this->model->read($id)) {
@@ -234,21 +227,18 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 	}
 
 
+
 	/**
 	 * @FIXME
 	 * Protože parametry jsou navzdory zvyklostem posílány absolutně.
-	 * @return [term, page]
+	 * @return array{0: mixed, 1: mixed, 2: mixed}
 	 */
-	private function prepareRequestRange()
+	private function prepareRequestRange(): array
 	{
 		$arr = $this->getPresenter()->getParameters();
 		unset($arr['do']);
 		unset($arr['action']);
-		return array(
-			isset($arr['term']) ? $arr['term'] : '',
-			isset($arr['page']) ? $arr['page'] : 1,
-			isset($arr['pageSize']) ? $arr['pageSize'] : NULL,
-		);
+		return [$arr['term'] ?? '', $arr['page'] ?? 1, $arr['pageSize'] ?? NULL];
 	}
 
 }

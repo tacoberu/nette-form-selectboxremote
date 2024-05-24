@@ -1,7 +1,8 @@
-<?php
+<?php declare(strict_types = 1);
+
 /**
- * Copyright (c) since 2010 Martin Takáč (http://martin.takac.name)
- * @license   https://opensource.org/licenses/MIT MIT
+ * Copyright (c) since 2004 Martin Takáč (http://martin.takac.name)
+ * @license https://opensource.org/licenses/MIT MIT
  */
 
 namespace Taco\Nette\Forms\Controls;
@@ -27,43 +28,34 @@ use Taco\Nette\Forms\QueryModel;
 class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiver
 {
 
-	/**
+ /**
 	 * Díky tomuto traitu je možné tomuto prvku posílat signály.
 	 */
 	use SignalControl;
 
-
 	/**
 	 * Minimální počet znaků, než se začne dotazovat serveru.
-	 * @var numeric
 	 */
-	private $minInput = 1;
-
+	private int $minInput = 1;
 
 	/**
 	 * Size of page
-	 * @var numeric
 	 */
-	private $pageSize = 10;
-
+	private int $pageSize = 10;
 
 	/**
-	 * @var QueryModel
+	 * @var array{id: string, label: string}|null
 	 */
-	private $model;
-
-
-	/** @var {id:string, label:string} */
-	private $item = NULL;
-
+	private ?array $item = null;
 
 	/**
 	 * @param string $label Popisek prvku.
+	 * @param int|null $pageSize
 	 */
-	function __construct(QueryModel $model, $label = NULL, $pageSize = NULL)
+	function __construct(private QueryModel $model, $label = NULL, $pageSize = NULL)
 	{
 		parent::__construct($label);
-		$this->model = $model;
+
 		if ($pageSize) {
 			$this->pageSize = (int) $pageSize;
 		}
@@ -73,8 +65,9 @@ class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiv
 
 	/**
 	 * @param int $val Set optional PageSize
+	 * @return static
 	 */
-	function setPageSize($val)
+	function setPageSize($val): self
 	{
 		$this->pageSize = (int) $val;
 		return $this;
@@ -86,8 +79,9 @@ class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiv
 	 * Dotaz zpátky sem na komponentu ohledně balíčku záznamů.
 	 * @param string $term Vyhledávaný text.
 	 * @param numeric $page O kolikátou stránku se jedná. Počítáno o 1.
+	 * @param numeric|null $pageSize
 	 */
-	function handleRange($term, $page, $pageSize = NULL)
+	function handleRange($term, $page, $pageSize = NULL): void
 	{
 		Validators::assert($term, 'string|null');
 		Validators::assert($page, 'numeric|null');
@@ -97,10 +91,10 @@ class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiv
 		}
 		$page = (int) $page;
 		$pageSize = (int) $pageSize;
-		if ( ! $pageSize) {
+		if ( $pageSize === 0) {
 			$pageSize = $this->pageSize;
 		}
-		if ( ! $page) {
+		if ( $page === 0) {
 			$page = 1;
 		}
 
@@ -112,7 +106,7 @@ class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiv
 		$payload->isMoreResults = ($page * $pageSize <= $payload->total);
 		$payload->term = $term;
 		$payload->page = (int) $page;
-		$payload->pageSize = (int) $pageSize;
+		$payload->pageSize = $pageSize;
 
 		// Výsledky vyhledávání.
 		$payload->items = array_values($payload->items);
@@ -122,12 +116,11 @@ class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiv
 
 
 
-	function getControl() : Nette\Utils\Html
+	function getControl(): Nette\Utils\Html
 	{
-		/** @var Nette\Utils\Html $el */
 		$el = parent::getControl();
 		$el->data('type', 'remoteselect');
-		$el->data('data-url', $this->link('//range!', array()));
+		$el->data('data-url', $this->link('//range!', []));
 		$el->data('min-input', $this->minInput);
 		if ($this->getPrompt()) {
 			$el->data('prompt', $this->getPrompt());
@@ -140,14 +133,11 @@ class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiv
 
 	/**
 	 * Loads HTTP data.
-	 * @return void
 	 */
-	function loadHttpData() : void
+	function loadHttpData(): void
 	{
 		$value = $this->getHttpData(Nette\Forms\Form::DATA_TEXT);
-		if (($value === NULL)
-				|| ($this->getPrompt() && $value === '')
-				|| (is_array($this->disabled) && isset($this->disabled[$value]))){
+		if (($value === NULL) || ($this->getPrompt() && $value === '')){
 			$this->value = NULL;
 		}
 		else {
@@ -159,17 +149,19 @@ class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiv
 
 	/**
 	 * Sets selected item (by key).
-	 * @param  string|int|null
-	 * @return self
+	 * @param string|int|null $value
 	 * @internal
 	 */
-	function setValue($value)
+	function setValue($value): self
 	{
 		Validators::assert($value, 'string|int|null');
-		if (/*$this->checkAllowedValues && */$value !== NULL && empty($this->fetchOne($value))) {
+		if (/*$this->checkAllowedValues && */
+			$value !== NULL
+			&& in_array($this->fetchOne((string) $value), [null, []], true)
+		) {
 			throw new Nette\InvalidArgumentException("Value '$value' is not found of resource.");
 		}
-		if ($value && $this->item = $this->fetchOne($value)) {
+		if ($value && $this->item = $this->fetchOne((string) $value)) {
 			$this->value = $this->item['id'];
 			$this->items = [$this->item['id'] => $this->item['label']];
 		}
@@ -184,9 +176,8 @@ class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiv
 
 	/**
 	 * Returns selected key.
-	 * @return string|int
 	 */
-	function getValue()
+	function getValue(): mixed
 	{
 		if (empty($this->value)) {
 			return NULL;
@@ -203,9 +194,8 @@ class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiv
 
 	/**
 	 * Returns selected value.
-	 * @return mixed
 	 */
-	function getSelectedItem()
+	function getSelectedItem(): mixed
 	{
 		$item = $this->item;
 		if ($item === NULL) {
@@ -218,9 +208,9 @@ class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiv
 
 	/**
 	 * @param string $id
-	 * @return {id:string, label:string}
+	 * @return array{id: string, label: string}|null
 	 */
-	private function fetchOne($id)
+	private function fetchOne($id): ?array
 	{
 		Validators::assert($id, 'string');
 		if ($value = $this->model->read($id)) {
@@ -230,21 +220,18 @@ class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiv
 	}
 
 
+
 	/**
 	 * @FIXME
 	 * Protože parametry jsou navzdory zvyklostem posílány absolutně.
-	 * @return [term, page]
+	 * @return array{0: mixed, 1: mixed, 2: mixed}
 	 */
-	private function prepareRequestRange()
+	private function prepareRequestRange(): array
 	{
 		$arr = $this->getPresenter()->getParameters();
 		unset($arr['do']);
 		unset($arr['action']);
-		return array(
-			isset($arr['term']) ? $arr['term'] : '',
-			isset($arr['page']) ? $arr['page'] : 1,
-			isset($arr['pageSize']) ? $arr['pageSize'] : NULL,
-		);
+		return [$arr['term'] ?? '', $arr['page'] ?? 1, $arr['pageSize'] ?? NULL];
 	}
 
 }

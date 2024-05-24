@@ -1,10 +1,14 @@
-<?php
+<?php declare(strict_types = 1);
+
 /**
- * Copyright (c) since 2010 Martin Takáč (http://martin.takac.name)
- * @license   https://opensource.org/licenses/MIT MIT
+ * Copyright (c) since 2004 Martin Takáč (http://martin.takac.name)
+ * @license https://opensource.org/licenses/MIT MIT
  */
 
 namespace Taco\Nette\Forms;
+
+use Nette\Utils\Validators;
+use stdClass;
 
 
 /**
@@ -15,22 +19,20 @@ class CallbackQueryModel implements QueryModel
 {
 
 	/**
-	 * @var calback(term:string, page:numeric, pageSize:numeric) -> {total:numeric, items:array of {id:string, label:string}}
+	 * @var callable(string, int, int): \stdClass
 	 */
 	private $dataquery;
 
-
 	/**
-	 * @var calback(id:string) -> {id:string, label:string}
+	 * @var callable(string|int): (array{id: string, label: string}|null)
 	 */
 	private $dataread;
 
-
 	/**
-	 * @param calback(term:string, page:numeric, pageSize:numeric) -> {total:numeric, items:array of {id:string, label:string}}
-	 * @param calback(id:string) -> {id:string, label:string}
+	 * @param callable(string, int, int): \stdClass $dataquery
+	 * @param callable(string|int): (array{id: string, label: string}|null) $dataread
 	 */
-	function __construct($dataquery, $dataread)
+	function __construct(callable $dataquery, callable $dataread)
 	{
 		$this->dataquery = $dataquery;
 		$this->dataread = $dataread;
@@ -39,12 +41,10 @@ class CallbackQueryModel implements QueryModel
 
 
 	/**
-	 * @param string $term
-	 * @param numeric $page
-	 * @param numeric $pageSize
-	 * @return {total:numeric, items:array of {id:string, label:string}}
+	 * @param array<string, mixed> $args
+	 * @return \stdClass {total: int, items: array<array{id: string, label: string}>}
 	 */
-	function range(string $term, int $page, int $pageSize, array $args = [])
+	function range(string $term, int $page, int $pageSize, array $args = []): stdClass
 	{
 		$fn = $this->dataquery;
 		return $fn($term, $page, $pageSize);
@@ -55,10 +55,11 @@ class CallbackQueryModel implements QueryModel
 	/**
 	 * One for setDefaults();
 	 * @param string|int $id
-	 * @return array{id:string, label:string}
+	 * @return array{id: string, label: string}|null
 	 */
-	function read(string|int $id)
+	function read($id): ?array
 	{
+		Validators::assert($id, 'string:1..');
 		$fn = $this->dataread;
 		return $fn($id);
 	}

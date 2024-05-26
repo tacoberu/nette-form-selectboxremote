@@ -1,27 +1,28 @@
 SelectboxRemote
 ===============
 
-Select, which retrieves data remotely. Suitable for a large amount of data that we want to filter and load sequentially page by page.
+Select, který načítá data vzdáleně. Vhodné pro velké množství data, které chceme filtrovat, a načítat postupně po stránkách.
 
 
-## Installation
+## Instalace
 
 ```
 composer require tacoberu/nette-form-selectboxremote
 ```
 
 
-## Usage
+## Použití
 
-Just as in a normal selecbox you pass an array of values, here you pass a model providing values.
-The universal `CallbackQueryModel` can serve as a model, which will solve everything with callbacks. But
-it is possible to create a suitable implementation of the interface that provides the required data.
+Tak jak v obyčejném selecboxu předáváte pole hodnot, zde předáváte model poskytující hodnoty.
+Jako model může posloužit univerzální `CallbackQueryModel`, který všechno pořeší callbackama. Ale
+je možné si vytvořit vhodnou implementaci rozhraní, které poskytuje požadovaná data.
 
-It might look something like this:
+Může to vypadat nějak takto:
 
-### Register extension
 
-Add `addSelectRemote()` and `addMultiSelectRemote()` shortcuts to the container:
+### Registrace extension
+
+Přidáme si do kontaineru zkratku `addSelectRemote()` a `addMultiSelectRemote()`:
 
 ```
 extensions:
@@ -31,7 +32,7 @@ extensions:
 
 ### Javascript
 
-A javascript handler needs to be added, for example:
+Je třeba přidat obslužný program javascriptu, například:
 
 ```html
 	<link href="https://cdn.jsdelivr.net/npm/select2@4.0.10/dist/css/select2.min.css" rel="stylesheet" />
@@ -123,10 +124,9 @@ $categorySelectQueryModel = new CallbackQueryModel(function($term, $page, $pageS
 	}
 });
 
-// ...
+$form['category'] = new SelectBoxRemoteControl($categorySelectQueryModel, 'Category:');
+$form['tags'] = new MultiSelectBoxRemoteControl($this->getTagSelectQueryModel(), 'Tags:');
 
-$form->addSelectRemote('category', 'Category:', $categorySelectQueryModel);
-$form->addMultiSelectRemote('tags', 'Tags:', $tagsSelectQueryModel);
 ```
 
 <img src="assets/remoteselect-form.png" />

@@ -10,6 +10,7 @@ namespace Taco\Nette\Forms\Controls;
 use Nette;
 use Nette\Utils\Validators;
 use Nette\Forms\Controls;
+use Nette\Forms\Container;
 use Nette\Application\UI\ISignalReceiver;
 use Nette\Application\Responses\JsonResponse;
 use Taco\Nette\Forms\QueryModel;
@@ -47,6 +48,16 @@ class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiv
 	 * @var array{id: string, label: string}|null
 	 */
 	private ?array $item = null;
+
+	static function register(string $name): void
+	{
+		Container::extensionMethod("add{$name}", static function (Container $form, $name = null, $label = null, ?QueryModel $model = null): self {
+			$form[$name] = new self($model, $label);
+			return $form[$name];
+		});
+	}
+
+
 
 	/**
 	 * @param string $label Popisek prvku.

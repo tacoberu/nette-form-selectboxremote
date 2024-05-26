@@ -9,6 +9,7 @@ namespace Taco\Nette\Forms\Controls;
 use Nette;
 use Nette\Utils\Validators;
 use Nette\Forms\Controls;
+use Nette\Forms\Container;
 use Nette\Application\UI\ISignalReceiver;
 use Nette\Application\Responses\JsonResponse;
 use Taco\Nette\Forms\QueryModel;
@@ -55,6 +56,17 @@ class MultiSelectBoxRemoteControl extends Controls\MultiSelectBox implements ISi
 
 	/** @var [{id:string, label:string}] */
 	private $selectedItems = [];
+
+
+
+	static function register(string $name): void
+	{
+		Container::extensionMethod("addMulti{$name}", function (Container $form, $name, $label, $model) {
+			$form[$name] = new self($model, $label);
+			return $form[$name];
+		});
+	}
+
 
 
 	/**

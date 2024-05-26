@@ -10,6 +10,7 @@ use Nette;
 use Nette\Utils\Html;
 use Nette\Utils\Validators;
 use Nette\Forms\Controls;
+use Nette\Forms\Container;
 use Nette\Application\UI\ISignalReceiver;
 use Nette\Application\Responses\JsonResponse;
 use Taco\Nette\Forms\QueryModel;
@@ -56,6 +57,16 @@ class SelectBoxRemoteControl extends Controls\SelectBox implements ISignalReceiv
 
 	/** @var object{id:string, label:string}|null */
 	private $item = Null;
+
+
+	static function register(string $name): void
+	{
+		Container::extensionMethod("add{$name}", function (Container $form, $name, $label, $model) {
+			$form[$name] = new self($model, $label);
+			return $form[$name];
+		});
+	}
+
 
 
 	/**

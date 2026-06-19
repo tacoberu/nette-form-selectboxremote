@@ -19,7 +19,11 @@
 		"phpstan/phpstan": "^2.0",
 		"slevomat/coding-standard": "^8.29",
 		"rector/rector": "^2.0",
-		"phpunit/phpunit": "^9.6"
+		"phpunit/phpunit": "^9.6",
+		"nette/di": "^3.1",
+		"nette/bootstrap": "^3.1",
+		"tracy/tracy": "^2.9",
+		"latte/latte": "^2.11"
 	},
 	"autoload": {
 		"classmap": ["libs"]

@@ -9,6 +9,7 @@
 
     <file>libs</file>
     <file>tests</file>
+    <file>examples/app</file>
 
     <config name="installed_paths" value="vendor/slevomat/coding-standard,phpcs-custom"/>
 

@@ -8,4 +8,5 @@ phpcs-custom/ export-ignore
 phpstan.neon export-ignore
 phpunit.xml.dist export-ignore
 tests/ export-ignore
+examples/ export-ignore
 *.sh eol=lf

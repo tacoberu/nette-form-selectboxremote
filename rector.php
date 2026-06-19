@@ -9,6 +9,7 @@ return RectorConfig::configure()
 	->withPaths([
 		__DIR__ . '/libs',
 		__DIR__ . '/tests',
+		__DIR__ . '/examples/app',
 	])
 	->withSets([
 		DowngradeLevelSetList::DOWN_TO_PHP_81,

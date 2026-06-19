@@ -15,7 +15,8 @@
 	},
 	"require-dev": {
 		"phpstan/phpstan": "^1.10",
-		"slevomat/coding-standard": "^8.29"
+		"slevomat/coding-standard": "^8.29",
+		"rector/rector": "^1.2"
 	},
 	"autoload": {
 		"classmap": ["libs"]

@@ -16,12 +16,14 @@
 	"require-dev": {
 		"phpstan/phpstan": "^1.10",
 		"slevomat/coding-standard": "^8.29",
-		"rector/rector": "^1.2"
+		"rector/rector": "^1.2",
+		"phpunit/phpunit": "^9.6"
 	},
 	"autoload": {
 		"classmap": ["libs"]
 	},
 	"scripts": {
+		"phpunit": "vendor/bin/phpunit",
 		"phpcs": "vendor/bin/phpcs",
 		"phpcbf": "vendor/bin/phpcbf",
 		"phpstan": "phpstan analyse"

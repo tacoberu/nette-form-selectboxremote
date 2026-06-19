@@ -8,7 +8,7 @@ use Rector\CodeQuality\Rector\ClassMethod\LocallyCalledStaticMethodToNonStaticRe
 return RectorConfig::configure()
 	->withPaths([
 		__DIR__ . '/libs',
-		//~ __DIR__ . '/tests',
+		__DIR__ . '/tests',
 	])
 	->withSets([
 		DowngradeLevelSetList::DOWN_TO_PHP_81,

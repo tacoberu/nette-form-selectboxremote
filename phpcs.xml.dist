@@ -8,6 +8,7 @@
 	<arg name="tab-width" value="4"/>
 
     <file>libs</file>
+    <file>tests</file>
 
     <config name="installed_paths" value="vendor/slevomat/coding-standard,phpcs-custom"/>
 

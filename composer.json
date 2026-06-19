@@ -14,12 +14,23 @@
 		"nette/forms": "^3.2"
 	},
 	"require-dev": {
-		"phpstan/phpstan": "^1.10"
+		"phpstan/phpstan": "^1.10",
+		"slevomat/coding-standard": "^8.29"
 	},
 	"autoload": {
 		"classmap": ["libs"]
 	},
 	"scripts": {
+		"phpcs": "vendor/bin/phpcs",
+		"phpcbf": "vendor/bin/phpcbf",
 		"phpstan": "phpstan analyse"
+	},
+	"config": {
+		"platform": {
+			"php": "7.4"
+		},
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
 	}
 }

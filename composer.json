@@ -24,6 +24,11 @@
 	"autoload": {
 		"classmap": ["libs"]
 	},
+	"autoload-dev": {
+		"psr-4": {
+			"Tests\\": "tests"
+		}
+	},
 	"scripts": {
 		"phpunit": "vendor/bin/phpunit",
 		"phpcs": "vendor/bin/phpcs",

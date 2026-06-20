@@ -9,4 +9,8 @@ phpstan.neon export-ignore
 phpunit.xml.dist export-ignore
 tests/ export-ignore
 examples/ export-ignore
+package.json export-ignore
+package-lock.json export-ignore
+playwright.config.ts export-ignore
+tsconfig.json export-ignore
 *.sh eol=lf

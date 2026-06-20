@@ -1,0 +1,1 @@
+../../../assets/TomSelectAdapter.js

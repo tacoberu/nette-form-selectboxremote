@@ -21,6 +21,15 @@ composer require tacoberu/nette-form-selectboxremote
 ```
 
 
+## Verze a požadavky
+
+| Branch | PHP | Nette |
+|--------|-----|-------|
+| `v2.0` | >= 8.1 | ^3.2 |
+| `v1.2` | >= 7.4 | ^3.1 |
+
+
+
 ## Použití
 
 ### Registrace extension

@@ -9,6 +9,8 @@ const PAGE_SIZE = 10;
 export interface RemoteSelectItem {
 	id: string;
 	label: string;
+	/** Extra decoration fields (e.g. `flag`, `icon`, `description`) picked up by custom renderers. */
+	[key: string]: unknown;
 }
 
 export interface RemoteSelectResponse {
@@ -37,7 +39,7 @@ export interface Select2Options {
 		delay: number;
 		data: (params: Select2Params) => { term?: string; page?: number };
 		processResults: (data: RemoteSelectResponse, params: Select2Params) => {
-			results: Array<{ id: string; text: string }>;
+			results: Array<RemoteSelectItem & { text: string }>;
 			pagination: { more: boolean };
 		};
 	};
@@ -77,7 +79,7 @@ export function initSelect2Impl(el: Element, overrides: Select2Options = {}): vo
 			processResults: (data, params) => {
 				params.page = params.page || 1;
 				return {
-					results: data.items.map((x) => ({ id: x.id, text: x.label })),
+					results: data.items.map((x) => ({ ...x, id: x.id, text: x.label })),
 					pagination: {
 						more: params.page * PAGE_SIZE < data.total,
 					},

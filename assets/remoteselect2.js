@@ -33,7 +33,7 @@ export function initSelect2Impl(el, overrides = {}) {
             processResults: (data, params) => {
                 params.page = params.page || 1;
                 return {
-                    results: data.items.map((x) => ({ id: x.id, text: x.label })),
+                    results: data.items.map((x) => ({ ...x, id: x.id, text: x.label })),
                     pagination: {
                         more: params.page * PAGE_SIZE < data.total,
                     },

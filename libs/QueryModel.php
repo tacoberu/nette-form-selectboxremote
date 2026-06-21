@@ -14,8 +14,11 @@ interface QueryModel
 {
 
 	/**
+	 * Items may carry arbitrary extra fields besides id/label (e.g. flag, icon,
+	 * description) for the JS renderer to pick up — see assets/remoteselect2.ts
+	 * and assets/TomSelectAdapter.ts.
 	 * @param array<string, mixed> $args
-	 * @return \stdClass {total: int, items: array<array{id: string, label: string}>}
+	 * @return \stdClass {total: int, items: array<array{id: string, label: string, ...}>}
 	 */
 	function range(string $term, int $page, int $pageSize, array $args = []);
 
@@ -23,7 +26,7 @@ interface QueryModel
 
 	/**
 	 * @param string|int $id
-	 * @return array{id: string, label: string}|null
+	 * @return array{id: string, label: string, ...}|null
 	 */
 	function read($id);
 

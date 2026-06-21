@@ -102,6 +102,29 @@ document.querySelectorAll('select').forEach((el) => {
 U TomSelect jsou `plugins` z overrides slučovány s `virtual_scroll`, který nelze vypnout — bez
 něj by stránkování přes AJAX nebylo k dispozici.
 
+#### Dekorace prvků
+
+Model může u každé položky vracet libovolná další pole nad `id`/`label` (např. `flag`, `icon`,
+`description`) — knihovna je beze změny propustí až do JS vrstvy. Jejich vykreslení (ikona,
+vlaječka, popisek pod labelem, ...) je pak na vlastním šablonovacím callbacku, který se zapíná
+přes stejný `overrides` parametr:
+
+```js
+// Select2: templateResult/templateSelection dostanou celý objekt položky.
+initSelect2Impl(el, {
+	templateResult: (data) => `${data.flag ?? ''} ${data.label}`,
+});
+
+// TomSelect: render.option/render.item dostanou objekt položky a escape() helper.
+initTomSelectImpl(el, {
+	render: { option: (data, escape) => `<div>${escape(data.flag ?? '')} ${escape(data.label)}</div>` },
+});
+```
+
+Ukázková aplikace to demonstruje na polích `countries` (vlaječka + název státu) a `accounts`
+(ikona vlevo, label a popisek pod sebou) — viz `DashboardPresenter::getCountrySelectModel()` /
+`getAccountSelectModel()` a odpovídající `<script type="module">` v `select2.latte` / `tomselect.latte`.
+
 
 
 ### Použití v PHP

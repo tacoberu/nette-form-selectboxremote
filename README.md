@@ -107,6 +107,30 @@ document.querySelectorAll('select').forEach((el) => {
 For TomSelect, `plugins` from the overrides are merged with `virtual_scroll`, which cannot be
 disabled — without it, pagination over AJAX would not be available.
 
+#### Decorating items
+
+The model can return arbitrary extra fields per item on top of `id`/`label` (e.g. `flag`, `icon`,
+`description`) — the library passes them through unchanged all the way to the JS layer. Rendering
+them (an icon, a flag, a description under the label, ...) is then up to your own template
+callback, enabled through the same `overrides` parameter:
+
+```js
+// Select2: templateResult/templateSelection receive the whole item object.
+initSelect2Impl(el, {
+	templateResult: (data) => `${data.flag ?? ''} ${data.label}`,
+});
+
+// TomSelect: render.option/render.item receive the item object and an escape() helper.
+initTomSelectImpl(el, {
+	render: { option: (data, escape) => `<div>${escape(data.flag ?? '')} ${escape(data.label)}</div>` },
+});
+```
+
+The example application demonstrates this on the `countries` field (flag + country name) and the
+`accounts` field (icon on the left, label and description stacked below it) — see
+`DashboardPresenter::getCountrySelectModel()` / `getAccountSelectModel()` and the corresponding
+`<script type="module">` in `select2.latte` / `tomselect.latte`.
+
 
 ### Usage in PHP
 

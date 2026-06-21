@@ -8,9 +8,39 @@
 
 	<script type="module">
 		import { initTomSelectImpl } from "/js/TomSelectAdapter.js";
+
+		function escapeOrEmpty(escape, value) {
+			return value == null ? '' : escape(String(value));
+		}
+
+		// Decorated rendering: flag + country name.
+		function renderCountry(data, escape) {
+			const flag = data.flag ? escapeOrEmpty(escape, data.flag) + ' ' : '';
+			return '<div>' + flag + escapeOrEmpty(escape, data.label) + '</div>';
+		}
+
+		// Decorated rendering: icon on the left, label and description stacked.
+		function renderAccount(data, escape) {
+			const icon = data.icon ? '<span>' + escapeOrEmpty(escape, data.icon) + '</span>' : '';
+			const description = data.description
+				? '<div style="font-size:0.85em;color:#777;">' + escapeOrEmpty(escape, data.description) + '</div>'
+				: '';
+			return (
+				'<div style="display:flex;align-items:center;gap:0.5em;">' +
+					icon +
+					'<div><div>' + escapeOrEmpty(escape, data.label) + '</div>' + description + '</div>' +
+				'</div>'
+			);
+		}
+
 		document.querySelectorAll('select').forEach((el) => {
-			// Multi-selects also get reordering (drag_drop) and the ability to add a new record (create).
-			const overrides = el.multiple ? { plugins: ['drag_drop'], create: true } : {};
+			let overrides = el.multiple ? { plugins: ['drag_drop'], create: true } : {};
+			if (el.name === 'countries') {
+				overrides = { ...overrides, render: { option: renderCountry, item: renderCountry } };
+			}
+			else if (el.name === 'accounts') {
+				overrides = { ...overrides, render: { option: renderAccount, item: renderAccount } };
+			}
 			initTomSelectImpl(el, overrides);
 		});
 	</script>

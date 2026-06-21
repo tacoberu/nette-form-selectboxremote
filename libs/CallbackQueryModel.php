@@ -24,13 +24,13 @@ class CallbackQueryModel implements QueryModel
 	private $dataquery;
 
 	/**
-	 * @var callable(string|int): (array{id: string, label: string}|null)
+	 * @var callable(string|int): (array{id: string, label: string, ...}|null)
 	 */
 	private $dataread;
 
 	/**
 	 * @param callable(string, int, int): \stdClass $dataquery
-	 * @param callable(string|int): (array{id: string, label: string}|null) $dataread
+	 * @param callable(string|int): (array{id: string, label: string, ...}|null) $dataread
 	 */
 	function __construct(callable $dataquery, callable $dataread)
 	{
@@ -41,8 +41,10 @@ class CallbackQueryModel implements QueryModel
 
 
 	/**
+	 * Items may carry arbitrary extra fields besides id/label (e.g. flag, icon,
+	 * description) for the JS renderer to pick up.
 	 * @param array<string, mixed> $args
-	 * @return \stdClass {total: int, items: array<array{id: string, label: string}>}
+	 * @return \stdClass {total: int, items: array<array{id: string, label: string, ...}>}
 	 */
 	function range(string $term, int $page, int $pageSize, array $args = []): stdClass
 	{
@@ -55,7 +57,7 @@ class CallbackQueryModel implements QueryModel
 	/**
 	 * One for setDefaults();
 	 * @param string|int $id
-	 * @return array{id: string, label: string}|null
+	 * @return array{id: string, label: string, ...}|null
 	 */
 	function read($id): ?array
 	{

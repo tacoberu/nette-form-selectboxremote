@@ -34,6 +34,14 @@ class DashboardPresenter extends BasePresenter
 			->setOption('description', 'S filtrováním - za využití js.')
 			->controlPrototype->data('class', 'filterable');
 
+		$form->addSelectRemote('countries', 'Country:', $this->getCountrySelectModel())
+			->setOption('description', 'Dekorovaná položka: vlaječka + název státu.')
+			->controlPrototype->data('class', 'filterable');
+
+		$form->addSelectRemote('accounts', 'Account:', $this->getAccountSelectModel())
+			->setOption('description', 'Dekorovaná položka: ikona vlevo, label a popisek pod sebou.')
+			->controlPrototype->data('class', 'filterable');
+
 		$form->setCurrentGroup(NULL);
 		$form->addSubmit('submit', 'Save')
 			->setAttribute('class', 'default');
@@ -114,6 +122,125 @@ class DashboardPresenter extends BasePresenter
 			}
 			return NULL;
 		});
+	}
+
+
+
+	private function getCountrySelectModel()
+	{
+		$data = self::getCountryData();
+
+		// Items carry an extra "flag" field on top of id/label, picked up by the JS renderer.
+		return new CallbackQueryModel(static function($term, $page, $pageSize) use ($data) {
+			$results = [];
+			foreach ($data as $x) {
+				if ($term && stripos($x->label, $term) === False) {
+					continue;
+				}
+				$results[] = (object) [
+					'id' => $x->id,
+					'label' => $x->label,
+					'flag' => $x->flag,
+				];
+			}
+			$total = count($results);
+			$offset = ($page - 1) * $pageSize;
+			return (object) [
+				'total' => $total,
+				'items' => array_slice($results, $offset, $pageSize),
+			];
+		}, static function($id) use ($data) {
+			foreach ($data as $x) {
+				if ($x->id === $id) {
+					return (array) $x;
+				}
+			}
+			return NULL;
+		});
+	}
+
+
+
+	private function getAccountSelectModel()
+	{
+		$data = self::getAccountData();
+
+		// Items carry extra "icon" and "description" fields on top of id/label.
+		return new CallbackQueryModel(static function($term, $page, $pageSize) use ($data) {
+			$results = [];
+			foreach ($data as $x) {
+				if ($term && stripos($x->label, $term) === False) {
+					continue;
+				}
+				$results[] = (object) [
+					'id' => $x->id,
+					'label' => $x->label,
+					'icon' => $x->icon,
+					'description' => $x->description,
+				];
+			}
+			$total = count($results);
+			$offset = ($page - 1) * $pageSize;
+			return (object) [
+				'total' => $total,
+				'items' => array_slice($results, $offset, $pageSize),
+			];
+		}, static function($id) use ($data) {
+			foreach ($data as $x) {
+				if ($x->id === $id) {
+					return (array) $x;
+				}
+			}
+			return NULL;
+		});
+	}
+
+
+
+	private static function getCountryData()
+	{
+		return [
+			(object)['id' => 'cz', 'label' => 'Česká republika', 'flag' => '🇨🇿'],
+			(object)['id' => 'sk', 'label' => 'Slovensko', 'flag' => '🇸🇰'],
+			(object)['id' => 'de', 'label' => 'Německo', 'flag' => '🇩🇪'],
+			(object)['id' => 'at', 'label' => 'Rakousko', 'flag' => '🇦🇹'],
+			(object)['id' => 'pl', 'label' => 'Polsko', 'flag' => '🇵🇱'],
+			(object)['id' => 'fr', 'label' => 'Francie', 'flag' => '🇫🇷'],
+			(object)['id' => 'es', 'label' => 'Španělsko', 'flag' => '🇪🇸'],
+			(object)['id' => 'it', 'label' => 'Itálie', 'flag' => '🇮🇹'],
+			(object)['id' => 'pt', 'label' => 'Portugalsko', 'flag' => '🇵🇹'],
+			(object)['id' => 'nl', 'label' => 'Nizozemsko', 'flag' => '🇳🇱'],
+			(object)['id' => 'be', 'label' => 'Belgie', 'flag' => '🇧🇪'],
+			(object)['id' => 'ch', 'label' => 'Švýcarsko', 'flag' => '🇨🇭'],
+			(object)['id' => 'se', 'label' => 'Švédsko', 'flag' => '🇸🇪'],
+			(object)['id' => 'no', 'label' => 'Norsko', 'flag' => '🇳🇴'],
+			(object)['id' => 'dk', 'label' => 'Dánsko', 'flag' => '🇩🇰'],
+			(object)['id' => 'fi', 'label' => 'Finsko', 'flag' => '🇫🇮'],
+			(object)['id' => 'us', 'label' => 'Spojené státy', 'flag' => '🇺🇸'],
+			(object)['id' => 'gb', 'label' => 'Velká Británie', 'flag' => '🇬🇧'],
+			(object)['id' => 'jp', 'label' => 'Japonsko', 'flag' => '🇯🇵'],
+			(object)['id' => 'cn', 'label' => 'Čína', 'flag' => '🇨🇳'],
+		];
+	}
+
+
+
+	private static function getAccountData()
+	{
+		return [
+			(object)['id' => 'u1', 'label' => 'Martin Takáč', 'icon' => '👤', 'description' => 'Administrátor'],
+			(object)['id' => 'u2', 'label' => 'Jana Nováková', 'icon' => '👩', 'description' => 'Účetní'],
+			(object)['id' => 'u3', 'label' => 'Petr Svoboda', 'icon' => '👨', 'description' => 'Obchodní zástupce'],
+			(object)['id' => 'u4', 'label' => 'Lucie Veselá', 'icon' => '👩‍💼', 'description' => 'Marketing'],
+			(object)['id' => 'u5', 'label' => 'Tomáš Dvořák', 'icon' => '👨‍💻', 'description' => 'Vývojář'],
+			(object)['id' => 'u6', 'label' => 'Eva Procházková', 'icon' => '👩‍💻', 'description' => 'Vývojářka'],
+			(object)['id' => 'u7', 'label' => 'Jan Černý', 'icon' => '👨‍🔧', 'description' => 'Podpora'],
+			(object)['id' => 'u8', 'label' => 'Marie Horáková', 'icon' => '👩‍🔧', 'description' => 'Podpora'],
+			(object)['id' => 'u9', 'label' => 'David Kovář', 'icon' => '👨‍💼', 'description' => 'Obchodní zástupce'],
+			(object)['id' => 'u10', 'label' => 'Klára Pokorná', 'icon' => '👩‍🎓', 'description' => 'HR'],
+			(object)['id' => 'u11', 'label' => 'Filip Marek', 'icon' => '👨‍🎓', 'description' => 'HR'],
+			(object)['id' => 'u12', 'label' => 'Tereza Bartošová', 'icon' => '👩‍⚖️', 'description' => 'Právní oddělení'],
+		];
 	}
 
 

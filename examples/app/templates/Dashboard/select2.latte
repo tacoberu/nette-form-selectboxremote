@@ -8,9 +8,69 @@
 
 	<script type="module">
 		import { initSelect2Impl } from "/js/remoteselect2.js";
+
+		// Decorated rendering: flag + country name.
+		function renderCountry(data) {
+			const el = document.createElement('span');
+			if (data.flag) {
+				const flag = document.createElement('span');
+				flag.textContent = data.flag + ' ';
+				el.appendChild(flag);
+			}
+			el.appendChild(document.createTextNode(data.label ?? data.text ?? ''));
+			return el;
+		}
+
+		// Decorated rendering for the open dropdown: icon on the left, label and description stacked.
+		// Two lines of height — fine in the dropdown, but would overflow the single-line selection box.
+		function renderAccountOption(data) {
+			const wrap = document.createElement('span');
+			wrap.style.display = 'flex';
+			wrap.style.alignItems = 'center';
+			wrap.style.gap = '0.5em';
+			if (data.icon) {
+				const icon = document.createElement('span');
+				icon.textContent = data.icon;
+				wrap.appendChild(icon);
+			}
+			const text = document.createElement('span');
+			const label = document.createElement('div');
+			label.textContent = data.label ?? data.text ?? '';
+			text.appendChild(label);
+			if (data.description) {
+				const description = document.createElement('div');
+				description.textContent = data.description;
+				description.style.fontSize = '0.85em';
+				description.style.color = '#777';
+				text.appendChild(description);
+			}
+			wrap.appendChild(text);
+			return wrap;
+		}
+
+		// Compact rendering for the collapsed selection box: icon + label only, single line.
+		function renderAccountSelection(data) {
+			const wrap = document.createElement('span');
+			wrap.style.display = 'inline-flex';
+			wrap.style.alignItems = 'center';
+			wrap.style.gap = '0.4em';
+			if (data.icon) {
+				const icon = document.createElement('span');
+				icon.textContent = data.icon;
+				wrap.appendChild(icon);
+			}
+			wrap.appendChild(document.createTextNode(data.label ?? data.text ?? ''));
+			return wrap;
+		}
+
 		document.querySelectorAll('select').forEach((el) => {
-			// Multi-selects also get the ability to add a new record.
-			const overrides = el.multiple ? { tags: true } : {};
+			let overrides = el.multiple ? { tags: true } : {};
+			if (el.name === 'countries') {
+				overrides = { ...overrides, templateResult: renderCountry, templateSelection: renderCountry };
+			}
+			else if (el.name === 'accounts') {
+				overrides = { ...overrides, templateResult: renderAccountOption, templateSelection: renderAccountSelection };
+			}
 			initSelect2Impl(el, overrides);
 		});
 	</script>

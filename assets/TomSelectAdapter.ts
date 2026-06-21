@@ -7,6 +7,8 @@
 interface RemoteSelectItem {
 	id: string;
 	label: string;
+	/** Extra decoration fields (e.g. `flag`, `icon`, `description`) picked up by custom renderers. */
+	[key: string]: unknown;
 }
 
 interface RemoteSelectResponse {
